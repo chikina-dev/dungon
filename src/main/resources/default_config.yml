@@ -1,0 +1,9 @@
+database:
+  url: "jdbc:postgresql://localhost:5432/dungeon"
+  username: "dungeon"
+  password: "dungeon"
+
+portals: []
+
+dev:
+  unlockTestSkillsOnFirstJoin: false

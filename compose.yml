@@ -1,0 +1,14 @@
+services:
+  database:
+    image: postgres:18.1
+    container_name: dungeon-database
+    environment:
+      POSTGRES_USER: dungeon
+      POSTGRES_PASSWORD: dungeon
+      POSTGRES_DB: dungeon
+      TZ: Asia/Tokyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql
+    restart: always
