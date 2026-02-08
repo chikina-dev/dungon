@@ -1,22 +1,22 @@
 package net.chikina.minecraft.dungeon.util
 
-import kotlin.math.cos
-import kotlin.math.sin
 import org.bukkit.Location
 import org.bukkit.Particle
+import kotlin.math.cos
+import kotlin.math.sin
 
 object ParticleUtils {
   fun drawLine(
-          start: Location,
-          end: Location,
-          particle: Particle,
-          count: Int,
-          step: Double,
-          offsetX: Double = 0.0,
-          offsetY: Double = 0.0,
-          offsetZ: Double = 0.0,
-          extra: Double = 0.0,
-          data: Any? = null
+    start: Location,
+    end: Location,
+    particle: Particle,
+    count: Int,
+    step: Double,
+    offsetX: Double = 0.0,
+    offsetY: Double = 0.0,
+    offsetZ: Double = 0.0,
+    extra: Double = 0.0,
+    data: Any? = null,
   ) {
     val locations = VectorUtils.getLocationsAlongLine(start, end, step)
     for (loc in locations) {
@@ -25,15 +25,15 @@ object ParticleUtils {
   }
 
   fun drawCircle(
-          center: Location,
-          radius: Double,
-          particle: Particle,
-          points: Int,
-          offsetX: Double = 0.0,
-          offsetY: Double = 0.0,
-          offsetZ: Double = 0.0,
-          extra: Double = 0.0,
-          data: Any? = null
+    center: Location,
+    radius: Double,
+    particle: Particle,
+    points: Int,
+    offsetX: Double = 0.0,
+    offsetY: Double = 0.0,
+    offsetZ: Double = 0.0,
+    extra: Double = 0.0,
+    data: Any? = null,
   ) {
     val world = center.world
     val increment = (2 * Math.PI) / points

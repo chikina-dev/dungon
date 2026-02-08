@@ -11,31 +11,33 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
 
 class WandListener : Listener {
-    private val magicAttack = MagicBasicAttackSkill()
+  private val magicAttack = MagicBasicAttackSkill()
 
-    @EventHandler
-    fun onInteract(event: PlayerInteractEvent) {
-        if (event.hand != EquipmentSlot.HAND) return
+  @EventHandler
+  fun onInteract(event: PlayerInteractEvent) {
+    if (event.hand != EquipmentSlot.HAND) return
 
-        val item = event.item ?: return
-        if (item.type == Material.AIR) return
+    val item = event.item ?: return
+    if (item.type == Material.AIR) return
 
-        val wand = WandItem(item)
-        if (wand.element == null) return
+    val wand = WandItem(item)
+    if (wand.element == null) return
 
-        if (event.action == Action.LEFT_CLICK_AIR || event.action == Action.LEFT_CLICK_BLOCK) {
-            val player = event.player
-            val dungeonPlayer = Dungeon.instance.playerManager.getPlayer(player)
+    if (event.action == Action.LEFT_CLICK_AIR || event.action == Action.LEFT_CLICK_BLOCK) {
+      val player = event.player
+      if (player.isSneaking) return
 
-            if (!dungeonPlayer.checkAndConsumeMana(magicAttack.manaCost)) {
-                return
-            }
+      val dungeonPlayer = Dungeon.instance.playerManager.getPlayer(player)
 
-            magicAttack.perform(dungeonPlayer, null)
+      if (!dungeonPlayer.checkAndConsumeMana(magicAttack.manaCost)) {
+        return
+      }
 
-            if (event.action == Action.LEFT_CLICK_BLOCK) {
-                event.isCancelled = true
-            }
-        }
+      magicAttack.perform(dungeonPlayer, null)
+
+      if (event.action == Action.LEFT_CLICK_BLOCK) {
+        event.isCancelled = true
+      }
     }
+  }
 }

@@ -8,12 +8,8 @@ abstract class DungeonEvent : Event() {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 }

@@ -2,8 +2,5 @@
   "java.compile.nullAnalysis.mode": "automatic",
   "java.configuration.updateBuildConfiguration": "interactive",
   "kotlin.languageServer.enabled": true,
-  "kotlin.languageServer.javaHome": "/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home",
-  "kotlin.languageServer.jvmArgs": [
-    "-Xmx2G"
-  ]
+  "editor.formatOnSave": false
 }

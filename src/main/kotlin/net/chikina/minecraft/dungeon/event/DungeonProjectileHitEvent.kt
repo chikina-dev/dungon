@@ -8,28 +8,22 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.entity.ProjectileHitEvent
 
 class DungeonProjectileHitEvent(
-        val projectile: Projectile,
-        val shooter: CombatEntity,
-        val skill: Skill?,
-        val originalEvent: ProjectileHitEvent
-) : DungeonEvent(), Cancellable {
-
+  val projectile: Projectile,
+  val shooter: CombatEntity,
+  val skill: Skill?,
+  val originalEvent: ProjectileHitEvent,
+) : DungeonEvent(),
+  Cancellable {
   companion object {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 
-  override fun isCancelled(): Boolean {
-    return originalEvent.isCancelled
-  }
+  override fun isCancelled(): Boolean = originalEvent.isCancelled
 
   override fun setCancelled(cancel: Boolean) {
     originalEvent.isCancelled = cancel

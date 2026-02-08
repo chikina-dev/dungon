@@ -4,9 +4,7 @@ import org.bukkit.Location
 import org.bukkit.util.Vector
 
 object VectorUtils {
-  fun getDirection(from: Location, to: Location): Vector {
-    return to.toVector().subtract(from.toVector()).normalize()
-  }
+  fun getDirection(from: Location, to: Location): Vector = to.toVector().subtract(from.toVector()).normalize()
 
   fun moveTowards(from: Location, to: Location, distance: Double): Location {
     val direction = getDirection(from, to)

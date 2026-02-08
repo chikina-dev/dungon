@@ -6,14 +6,13 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
 class UIListener : Listener {
+  @EventHandler
+  fun onInventoryClick(event: DungeonUIClickEvent) {
+    event.ui.onClick(event.originalEvent)
+  }
 
-    @EventHandler
-    fun onInventoryClick(event: DungeonUIClickEvent) {
-        event.ui.onClick(event.originalEvent)
-    }
-
-    @EventHandler
-    fun onInventoryClose(event: DungeonUICloseEvent) {
-        event.ui.onClose(event.originalEvent)
-    }
+  @EventHandler
+  fun onInventoryClose(event: DungeonUICloseEvent) {
+    event.ui.onClose(event.originalEvent)
+  }
 }

@@ -4,8 +4,11 @@ import net.chikina.minecraft.dungeon.event.DungeonTickEvent
 import org.bukkit.Bukkit
 
 object GameLoop {
+  private data class SystemEntry(
+    val system: GameSystem,
+    val interval: Int,
+  )
 
-  private data class SystemEntry(val system: GameSystem, val interval: Int)
   private val systems = mutableListOf<SystemEntry>()
   private var tickCount: Long = 0
 

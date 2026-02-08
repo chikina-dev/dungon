@@ -1,7 +1,5 @@
 package net.chikina.minecraft.dungeon.event
 
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 import net.chikina.minecraft.dungeon.Dungeon
 import net.chikina.minecraft.dungeon.combat.CombatEntity
 import net.chikina.minecraft.dungeon.combat.skill.SkillRegistry
@@ -27,11 +25,11 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.persistence.PersistentDataType
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 class EventNormalizer : Listener {
-
   companion object {
-    // Track recent actions to prevent duplicate firing
     private val recentActions = ConcurrentHashMap<UUID, Long>()
     private const val DUPLICATE_THRESHOLD_MS = 50L
 
@@ -54,19 +52,18 @@ class EventNormalizer : Listener {
     val isRightClick = event.action.name.contains("RIGHT")
     if (!isLeftClick && !isRightClick) return
 
-    // Deduplication check
     if (!shouldProcess(player.uniqueId)) return
 
     val dungeonPlayer = Dungeon.instance.playerManager.getPlayer(player)
     val isSneaking = player.isSneaking
 
     val playerAction =
-            when {
-              isSneaking && isLeftClick -> PlayerAction.SHIFT_LEFT_CLICK
-              isSneaking && isRightClick -> PlayerAction.SHIFT_RIGHT_CLICK
-              isLeftClick -> PlayerAction.LEFT_CLICK
-              else -> PlayerAction.RIGHT_CLICK
-            }
+      when {
+        isSneaking && isLeftClick -> PlayerAction.SHIFT_LEFT_CLICK
+        isSneaking && isRightClick -> PlayerAction.SHIFT_RIGHT_CLICK
+        isLeftClick -> PlayerAction.LEFT_CLICK
+        else -> PlayerAction.RIGHT_CLICK
+      }
 
     val actionEvent = PlayerActionEvent(dungeonPlayer, playerAction, null, event)
     Bukkit.getPluginManager().callEvent(actionEvent)
@@ -86,7 +83,6 @@ class EventNormalizer : Listener {
       return
     }
 
-    // Mark this tick as having a Q action (prevents left click from also firing)
     recentActions[player.uniqueId] = System.currentTimeMillis()
 
     val actionEvent = PlayerActionEvent(dungeonPlayer, PlayerAction.Q, null, event)
@@ -100,7 +96,7 @@ class EventNormalizer : Listener {
   @EventHandler(priority = EventPriority.LOWEST)
   fun onSwap(event: PlayerSwapHandItemsEvent) {
     if (event.offHandItem.type == Material.NETHER_STAR ||
-                    event.mainHandItem.type == Material.NETHER_STAR
+      event.mainHandItem.type == Material.NETHER_STAR
     ) {
       event.isCancelled = true
     }
@@ -122,7 +118,7 @@ class EventNormalizer : Listener {
     val holder = event.view.topInventory.holder
     if (holder is DungeonUI && event.whoClicked is Player) {
       val dungeonEvent =
-              DungeonUIClickEvent(holder, event.whoClicked as Player, event.rawSlot, event)
+        DungeonUIClickEvent(holder, event.whoClicked as Player, event.rawSlot, event)
       Bukkit.getPluginManager().callEvent(dungeonEvent)
     }
   }
@@ -159,8 +155,8 @@ class EventNormalizer : Listener {
     val projectile = event.entity
     val container = projectile.persistentDataContainer
 
-    if (container.has(PluginKeys.SKILL_ID, PersistentDataType.STRING)) {
-      val skillId = container.get(PluginKeys.SKILL_ID, PersistentDataType.STRING)
+    if (container.has(PluginKeys.skillId, PersistentDataType.STRING)) {
+      val skillId = container.get(PluginKeys.skillId, PersistentDataType.STRING)
       val skill = SkillRegistry.get(skillId!!) ?: return
 
       val shooter = projectile.shooter
@@ -177,7 +173,7 @@ class EventNormalizer : Listener {
   @EventHandler(priority = EventPriority.LOWEST)
   fun onMove(event: PlayerMoveEvent) {
     val from = event.from
-    val to = event.to ?: return
+    val to = event.to
 
     if (from.x == to.x && from.z == to.z) return
 

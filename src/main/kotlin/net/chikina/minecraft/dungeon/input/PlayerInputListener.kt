@@ -7,9 +7,9 @@ import net.chikina.minecraft.dungeon.util.ItemSkillHelper
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerDropItemEvent
 
 class PlayerInputListener : Listener {
-
   @EventHandler
   fun onAction(event: PlayerActionEvent) {
     val player = event.player
@@ -23,6 +23,7 @@ class PlayerInputListener : Listener {
           event.isCancelled = true
         }
       }
+
       PlayerAction.SHIFT_RIGHT_CLICK -> {
         val skillId = player.playerData.equippedSkills[SkillSlot.SHIFT_RIGHT_CLICK]
         if (!skillId.isNullOrEmpty()) {
@@ -30,13 +31,17 @@ class PlayerInputListener : Listener {
           event.isCancelled = true
         }
       }
+
       PlayerAction.Q -> {
         val skillId = player.playerData.equippedSkills[SkillSlot.Q]
         if (!skillId.isNullOrEmpty()) {
-          player.castSkill(skillId)
+          val dropEvent = event.originalEvent as? PlayerDropItemEvent
+          val item = dropEvent?.itemDrop?.itemStack
+          player.castSkill(skillId, item)
           event.isCancelled = true
         }
       }
+
       PlayerAction.RIGHT_CLICK -> {
         val item = player.player.inventory.itemInMainHand
 
@@ -54,11 +59,14 @@ class PlayerInputListener : Listener {
           event.isCancelled = true
         }
       }
+
       PlayerAction.LEFT_CLICK -> {}
+
       PlayerAction.MOVE_FORWARD,
       PlayerAction.MOVE_BACKWARD,
       PlayerAction.MOVE_LEFT,
-      PlayerAction.MOVE_RIGHT -> {}
+      PlayerAction.MOVE_RIGHT,
+      -> {}
     }
   }
 }

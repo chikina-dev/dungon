@@ -8,28 +8,22 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 
 class DungeonUIClickEvent(
-        val ui: DungeonUI,
-        val player: Player,
-        val slot: Int,
-        val originalEvent: InventoryClickEvent
-) : DungeonEvent(), Cancellable {
-
+  val ui: DungeonUI,
+  val player: Player,
+  val slot: Int,
+  val originalEvent: InventoryClickEvent,
+) : DungeonEvent(),
+  Cancellable {
   companion object {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 
-  override fun isCancelled(): Boolean {
-    return originalEvent.isCancelled
-  }
+  override fun isCancelled(): Boolean = originalEvent.isCancelled
 
   override fun setCancelled(cancel: Boolean) {
     originalEvent.isCancelled = cancel
@@ -37,21 +31,16 @@ class DungeonUIClickEvent(
 }
 
 class DungeonUICloseEvent(
-        val ui: DungeonUI,
-        val player: Player,
-        val originalEvent: InventoryCloseEvent
+  val ui: DungeonUI,
+  val player: Player,
+  val originalEvent: InventoryCloseEvent,
 ) : DungeonEvent() {
-
   companion object {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 }

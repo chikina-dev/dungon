@@ -8,27 +8,21 @@ import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.player.PlayerAnimationEvent
 
 class DungeonMiningSwingEvent(
-        val player: Player,
-        val block: Block,
-        val originalEvent: PlayerAnimationEvent
-) : DungeonEvent(), Cancellable {
-
+  val player: Player,
+  val block: Block,
+  val originalEvent: PlayerAnimationEvent,
+) : DungeonEvent(),
+  Cancellable {
   companion object {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 
-  override fun isCancelled(): Boolean {
-    return originalEvent.isCancelled
-  }
+  override fun isCancelled(): Boolean = originalEvent.isCancelled
 
   override fun setCancelled(cancel: Boolean) {
     originalEvent.isCancelled = cancel
@@ -36,27 +30,21 @@ class DungeonMiningSwingEvent(
 }
 
 class DungeonBlockBreakEvent(
-        val player: Player,
-        val block: Block,
-        val originalEvent: BlockBreakEvent
-) : DungeonEvent(), Cancellable {
-
+  val player: Player,
+  val block: Block,
+  val originalEvent: BlockBreakEvent,
+) : DungeonEvent(),
+  Cancellable {
   companion object {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 
-  override fun isCancelled(): Boolean {
-    return originalEvent.isCancelled
-  }
+  override fun isCancelled(): Boolean = originalEvent.isCancelled
 
   override fun setCancelled(cancel: Boolean) {
     originalEvent.isCancelled = cancel

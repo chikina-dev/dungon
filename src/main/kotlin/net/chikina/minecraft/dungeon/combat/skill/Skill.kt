@@ -2,7 +2,9 @@ package net.chikina.minecraft.dungeon.combat.skill
 
 import net.chikina.minecraft.dungeon.combat.CombatEntity
 import net.chikina.minecraft.dungeon.combat.DamageContext
-import net.chikina.minecraft.dungeon.item.WandItem
+import net.chikina.minecraft.dungeon.item.GameItem
+import net.chikina.minecraft.dungeon.item.GameMaterial
+import net.chikina.minecraft.dungeon.item.ItemAttribute
 import net.chikina.minecraft.dungeon.player.DungeonPlayer
 import net.chikina.minecraft.dungeon.util.PluginKeys
 import org.bukkit.Material
@@ -10,129 +12,114 @@ import org.bukkit.event.entity.ProjectileHitEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
-/** すべてのスキルの基底インターフェース。 戦闘アクションを定義します。 */
 abstract class Skill {
-    /** スキルの一意なID */
-    abstract val id: String
+  abstract val id: String
+  abstract val name: String
+  abstract val cooldown: Long
+  abstract val icon: ItemStack
 
-    /** 表示名 */
-    abstract val name: String
+  open val manaCost: Double = 0.0
 
-    /** クールダウン (ms) */
-    abstract val cooldown: Long
+  open val dependency: SkillRequirement? = WeaponRequirement(WeaponType.SWORD)
 
-    /** アイコン (GUI表示用) */
-    abstract val icon: ItemStack
-
-    /** マナ消費量 (デフォルト: 0.0) */
-    open val manaCost: Double = 0.0
-
-    /** 発動条件 (nullなら無条件) */
-    open val dependency: SkillRequirement? = null
-
-    var level: Int = 0
-        set(value) {
-            field = value.coerceIn(0, 4)
-        }
-
-    /** 解放に必要な素材 (nullの場合は解放不可/初期解放) */
-    open val unlockMaterial: net.chikina.minecraft.dungeon.item.GameMaterial? = null
-
-    /**
-     * スキルを実行します。
-     * @param attacker 攻撃者
-     * @param target 対象 (nullの場合は getTargets で取得)
-     */
-    abstract fun perform(attacker: CombatEntity, target: CombatEntity? = null)
-
-    /**
-     * ターゲットを自動取得します。
-     * @param attacker 攻撃者
-     * @return ターゲットのリスト
-     */
-    abstract fun getTargets(attacker: CombatEntity): List<CombatEntity>
-
-    /** ダメージを与え、インジケーターを表示する共通メソッド。 */
-    fun applyDamage(target: CombatEntity, context: DamageContext) {
-        target.takeDamage(context)
-
-        target.notifyDamageReceived(context.amount, context.type, context.attacker, context.isCrit)
-        context.attacker?.notifyDamageDealt(context.amount, context.type, target, context.isCrit)
+  var level: Int = 0
+    set(value) {
+      field = value.coerceIn(0, 4)
     }
 
-    /** プロジェクタイルが着弾した時の処理ハンドラ。 SkillListenerから呼び出されます。 */
-    open fun onProjectileHit(event: ProjectileHitEvent, attacker: CombatEntity) {}
+  open val unlockMaterial: GameMaterial? = null
+
+  open val poiseDamage: Double = 10.0
+
+  abstract fun perform(attacker: CombatEntity, target: CombatEntity? = null)
+
+  abstract fun getTargets(attacker: CombatEntity): List<CombatEntity>
+
+  fun applyDamage(target: CombatEntity, context: DamageContext) {
+    context.poiseDamage = this.poiseDamage
+    target.takeDamage(context)
+
+    target.notifyDamageReceived(context.amount, context.type, context.attacker, context.isCrit)
+    context.attacker?.notifyDamageDealt(context.amount, context.type, target, context.isCrit)
+  }
+
+  open fun onProjectileHit(event: ProjectileHitEvent, attacker: CombatEntity) {}
 }
 
-/** スキル発動のスロット */
 enum class SkillSlot {
-    SHIFT_LEFT_CLICK,
-    SHIFT_RIGHT_CLICK,
-    Q
+  SHIFT_LEFT_CLICK,
+  SHIFT_RIGHT_CLICK,
+  Q,
 }
 
-/** スキルの依存関係（発動条件） */
 interface SkillRequirement {
-    /** 条件を満たしているか判定する */
-    fun isMet(player: DungeonPlayer): Boolean
+  fun isMet(player: DungeonPlayer, item: ItemStack? = null): Boolean
 
-    /** 条件の説明（UI表示用） */
-    fun getDescription(): String
+  fun getDescription(): String
 }
 
-/** 武器種別の要求 */
-class WeaponRequirement(private val type: WeaponType) : SkillRequirement {
-    override fun isMet(player: DungeonPlayer): Boolean {
-        val item = player.player.inventory.itemInMainHand
-        if (item.type == Material.AIR) return false
+class WeaponRequirement(
+  private val type: WeaponType,
+) : SkillRequirement {
+  override fun isMet(player: DungeonPlayer, item: ItemStack?): Boolean {
+    val checkItem = item ?: player.player.inventory.itemInMainHand
+    if (checkItem.type == Material.AIR) return false
+    val gameItem = GameItem(checkItem)
 
-        return when (type) {
-            WeaponType.SWORD -> item.type.name.contains("SWORD")
-            WeaponType.WAND -> WandItem(item).element != null
-            WeaponType.AXE -> item.type.name.contains("AXE")
-            WeaponType.ANY -> true
-        }
-    }
+    return when (type) {
+      WeaponType.SWORD -> {
+        checkItem.type.name.contains("SWORD") &&
+          gameItem.hasAttribute(ItemAttribute.WEAPON)
+      }
 
-    override fun getDescription(): String {
-        return when (type) {
-            WeaponType.SWORD -> "剣が必要"
-            WeaponType.WAND -> "杖が必要"
-            WeaponType.AXE -> "斧が必要"
-            WeaponType.ANY -> "武器が必要"
-        }
+      WeaponType.WAND -> {
+        gameItem.hasAttribute(ItemAttribute.WAND)
+      }
+
+      WeaponType.AXE -> {
+        checkItem.type.name.contains("AXE") &&
+          gameItem.hasAttribute(ItemAttribute.WEAPON)
+      }
+
+      WeaponType.ANY -> {
+        gameItem.hasAttribute(ItemAttribute.WEAPON)
+      }
     }
+  }
+
+  override fun getDescription(): String = when (type) {
+    WeaponType.SWORD -> "剣が必要"
+    WeaponType.WAND -> "杖が必要"
+    WeaponType.AXE -> "斧が必要"
+    WeaponType.ANY -> "武器が必要"
+  }
 }
 
-/** 特定のアイテムIDの要求 */
-class SpecificItemRequirement(private val itemId: String) : SkillRequirement {
-    override fun isMet(player: DungeonPlayer): Boolean {
-        val item = player.player.inventory.itemInMainHand
-        val meta = item.itemMeta ?: return false
-        val currentId =
-                meta.persistentDataContainer.get(PluginKeys.ITEM_ID, PersistentDataType.STRING)
-        return currentId == itemId
-    }
+class SpecificItemRequirement(
+  private val itemId: String,
+) : SkillRequirement {
+  override fun isMet(player: DungeonPlayer, item: ItemStack?): Boolean {
+    val checkItem = item ?: player.player.inventory.itemInMainHand
+    val meta = checkItem.itemMeta ?: return false
+    val currentId =
+      meta.persistentDataContainer.get(PluginKeys.itemId, PersistentDataType.STRING)
+    return currentId == itemId
+  }
 
-    override fun getDescription(): String {
-        return "専用武器が必要"
-    }
+  override fun getDescription(): String = "専用武器が必要"
 }
 
-/** 複合条件 (AND) */
-class CompositeRequirement(private val requirements: List<SkillRequirement>) : SkillRequirement {
-    override fun isMet(player: DungeonPlayer): Boolean {
-        return requirements.all { it.isMet(player) }
-    }
+class CompositeRequirement(
+  private val requirements: List<SkillRequirement>,
+) : SkillRequirement {
+  override fun isMet(player: DungeonPlayer, item: ItemStack?): Boolean = requirements.all { it.isMet(player, item) }
 
-    override fun getDescription(): String {
-        return requirements.joinToString(", ") { it.getDescription() }
-    }
+  override fun getDescription(): String = requirements.joinToString(", ") { it.getDescription() }
 }
 
 enum class WeaponType {
-    SWORD,
-    WAND,
-    AXE,
-    ANY
+  SWORD,
+  WAND,
+  AXE,
+  ANY,
 }

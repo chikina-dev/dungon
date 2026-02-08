@@ -8,30 +8,24 @@ import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 
 class PlayerActionEvent(
-        val player: DungeonPlayer,
-        val action: PlayerAction,
-        val target: CombatEntity?,
-        val originalEvent: Event
-) : DungeonEvent(), Cancellable {
-
+  val player: DungeonPlayer,
+  val action: PlayerAction,
+  val target: CombatEntity?,
+  val originalEvent: Event,
+) : DungeonEvent(),
+  Cancellable {
   companion object {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
   private var isCancelled = false
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 
-  override fun isCancelled(): Boolean {
-    return isCancelled
-  }
+  override fun isCancelled(): Boolean = isCancelled
 
   override fun setCancelled(cancel: Boolean) {
     this.isCancelled = cancel

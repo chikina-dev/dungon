@@ -5,5 +5,5 @@ enum class InputType {
   RIGHT_CLICK,
   DROP_ITEM,
   SWAP_HAND,
-  MENU_OPEN
+  MENU_OPEN,
 }

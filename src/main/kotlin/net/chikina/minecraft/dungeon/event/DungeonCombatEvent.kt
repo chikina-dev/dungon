@@ -6,27 +6,21 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 
 class DungeonCombatEvent(
-        val attacker: CombatEntity,
-        val victim: CombatEntity,
-        val originalEvent: EntityDamageByEntityEvent
-) : DungeonEvent(), Cancellable {
-
+  val attacker: CombatEntity,
+  val victim: CombatEntity,
+  val originalEvent: EntityDamageByEntityEvent,
+) : DungeonEvent(),
+  Cancellable {
   companion object {
     private val HANDLERS = HandlerList()
 
     @JvmStatic
-    fun getHandlerList(): HandlerList {
-      return HANDLERS
-    }
+    fun getHandlerList(): HandlerList = HANDLERS
   }
 
-  override fun getHandlers(): HandlerList {
-    return HANDLERS
-  }
+  override fun getHandlers(): HandlerList = HANDLERS
 
-  override fun isCancelled(): Boolean {
-    return originalEvent.isCancelled
-  }
+  override fun isCancelled(): Boolean = originalEvent.isCancelled
 
   override fun setCancelled(cancel: Boolean) {
     originalEvent.isCancelled = cancel

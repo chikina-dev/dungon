@@ -1,7 +1,8 @@
 name: dungeon
-version: '0.1.0'
+version: "0.1.0"
 main: net.chikina.minecraft.dungeon.Dungeon
-api-version: '1.21'
+api: "1.21"
+api-version: "1.21"
 softdepend: [ProtocolLib]
 commands:
   spawnshop:
@@ -38,5 +39,20 @@ commands:
     permission-message: You do not have permission to use this command.
   spawnboss:
     description: Spawns the Starfall Cleric boss
+    permission: dungeon.admin
+    permission-message: You do not have permission to use this command.
+  area_gen:
+    description: Generates a dungeon area in the specified coordinates
+    usage: /area_gen <x1> <y1> <z1> <x2> <y2> <z2>
+    permission: dungeon.admin
+    permission-message: You do not have permission to use this command.
+  regendungeon:
+    description: Regenerates a dungeon
+    usage: /regendungeon <name>
+    permission: dungeon.admin
+    permission-message: You do not have permission to use this command.
+  island_gen:
+    description: Generates a floating island dungeon in the specified coordinates
+    usage: /island_gen <x1> <y1> <z1> <x2> <y2> <z2> [horizonRatio] [caveScale]
     permission: dungeon.admin
     permission-message: You do not have permission to use this command.

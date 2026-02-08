@@ -4,34 +4,38 @@ import org.bukkit.NamespacedKey
 import org.bukkit.plugin.java.JavaPlugin
 
 object PluginKeys {
-    lateinit var MINING_SPEED: NamespacedKey
-        private set
-    lateinit var BREAKING_POWER: NamespacedKey
-        private set
-    lateinit var MINING_FORTUNE: NamespacedKey
-        private set
-    lateinit var ITEM_ID: NamespacedKey
-        private set
-    lateinit var GRAPPLING_HOOK: NamespacedKey
-        private set
-    lateinit var ELEMENT_TYPE: NamespacedKey
-        private set
-    lateinit var CUSTOM_DAMAGE: NamespacedKey
-        private set
-    lateinit var SKILL_ID: NamespacedKey
-        private set
-    lateinit var WEAPON_SKILL: NamespacedKey
-        private set
+  lateinit var itemId: NamespacedKey
+    private set
+  lateinit var elementType: NamespacedKey
+    private set
+  lateinit var customDamage: NamespacedKey
+    private set
+  lateinit var skillId: NamespacedKey
+    private set
+  lateinit var weaponSkill: NamespacedKey
+    private set
 
-    fun init(plugin: JavaPlugin) {
-        MINING_SPEED = NamespacedKey(plugin, "mining_speed")
-        BREAKING_POWER = NamespacedKey(plugin, "breaking_power")
-        MINING_FORTUNE = NamespacedKey(plugin, "mining_fortune")
-        ITEM_ID = NamespacedKey(plugin, "item_id")
-        GRAPPLING_HOOK = NamespacedKey(plugin, "grappling_hook")
-        ELEMENT_TYPE = NamespacedKey(plugin, "element_type")
-        CUSTOM_DAMAGE = NamespacedKey(plugin, "custom_damage")
-        SKILL_ID = NamespacedKey(plugin, "skill_id")
-        WEAPON_SKILL = NamespacedKey(plugin, "weapon_skill")
-    }
+  fun init(plugin: JavaPlugin) {
+    itemId = NamespacedKey(plugin, "item_id")
+    elementType = NamespacedKey(plugin, "element_type")
+    customDamage = NamespacedKey(plugin, "custom_damage")
+    skillId = NamespacedKey(plugin, "skill_id")
+    weaponSkill = NamespacedKey(plugin, "weapon_skill")
+    itemOwnerKey = NamespacedKey(plugin, "item_owner")
+    itemAttributes = NamespacedKey(plugin, "item_attributes")
+    itemHp = NamespacedKey(plugin, "item_hp")
+    itemDefense = NamespacedKey(plugin, "item_defense")
+    itemEndurance = NamespacedKey(plugin, "item_endurance")
+  }
+
+  lateinit var itemOwnerKey: NamespacedKey
+    private set
+  lateinit var itemAttributes: NamespacedKey
+    private set
+  lateinit var itemHp: NamespacedKey
+    private set
+  lateinit var itemDefense: NamespacedKey
+    private set
+  lateinit var itemEndurance: NamespacedKey
+    private set
 }

@@ -14,39 +14,73 @@ import org.bukkit.entity.Villager
 import org.bukkit.scoreboard.Team
 
 class ShopCommand : CommandExecutor {
-    @Suppress("DEPRECATION")
-    override fun onCommand(
-            sender: CommandSender,
-            command: Command,
-            label: String,
-            args: Array<out String>
-    ): Boolean {
-        if (sender !is Player) {
-            Messenger.error(sender, "Only players can use this command.")
-            return true
-        }
-
-        val location = sender.location
-        val villager = location.world.spawnEntity(location, EntityType.VILLAGER) as Villager
-
-        villager.customName(Component.text("Pickaxe Shop", NamedTextColor.GOLD))
-        villager.isCustomNameVisible = true
-        try {
-            villager.getAttribute(Attribute.valueOf("GENERIC_MOVEMENT_SPEED"))?.baseValue = 0.0
-        } catch (e: Exception) {
-            Messenger.warn(sender, "Could not set movement speed.")
-        }
-        villager.isCollidable = false
-        villager.isInvulnerable = true
-
-        val scoreboard = Bukkit.getScoreboardManager().mainScoreboard
-        val teamName = "no_collision"
-        val team = scoreboard.getTeam(teamName) ?: scoreboard.registerNewTeam(teamName)
-
-        team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER)
-        team.addEntry(villager.uniqueId.toString())
-
-        Messenger.success(sender, "Shop spawned!")
-        return true
+  @Suppress("DEPRECATION")
+  override fun onCommand(
+    sender: CommandSender,
+    command: Command,
+    label: String,
+    args: Array<out String>,
+  ): Boolean {
+    if (sender !is Player) {
+      Messenger.error(sender, "Only players can use this command.")
+      return true
     }
+
+    if (args.isEmpty()) {
+      Messenger.error(sender, "Usage: /spawnshop <pickaxe|axe>")
+      return true
+    }
+
+    val shopType = args[0].lowercase()
+    val shopName =
+      when (shopType) {
+        "pickaxe" -> {
+          "Pickaxe Shop"
+        }
+
+        "axe" -> {
+          "Axe Shop"
+        }
+
+        "armor" -> {
+          "Armor Shop"
+        }
+
+        else -> {
+          Messenger.error(sender, "Unknown shop type: $shopType")
+          return true
+        }
+      }
+    val nameColor =
+      if (shopType == "axe") {
+        NamedTextColor.DARK_GREEN
+      } else if (shopType == "armor") {
+        NamedTextColor.BLUE
+      } else {
+        NamedTextColor.GOLD
+      }
+
+    val location = sender.location
+    val villager = location.world.spawnEntity(location, EntityType.VILLAGER) as Villager
+
+    villager.customName(Component.text(shopName, nameColor))
+    villager.isCustomNameVisible = true
+    try {
+      villager.getAttribute(Attribute.valueOf("GENERIC_MOVEMENT_SPEED"))?.baseValue = 0.0
+    } catch (e: Exception) {
+      Messenger.warn(sender, "Could not set movement speed.")
+    }
+    villager.isCollidable = false
+    villager.isInvulnerable = true
+
+    val scoreboard = Bukkit.getScoreboardManager().mainScoreboard
+    val teamName = "no_collision"
+    val team = scoreboard.getTeam(teamName) ?: scoreboard.registerNewTeam(teamName)
+
+    team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER)
+    team.addEntry(villager.uniqueId.toString())
+
+    Messenger.success(sender, "$shopName spawned!")
+    return true
+  }
 }
