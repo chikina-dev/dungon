@@ -286,9 +286,11 @@ abstract class CombatEntity {
     )
   }
 
-  fun getNearbyEntities(range: Double): List<CombatEntity> = getNearbyEntities(location, range, range, range)
+  fun getNearbyEntities(range: Double): List<CombatEntity> =
+    getNearbyEntities(location, range, range, range)
 
-  fun getNearbyEntities(x: Double, y: Double, z: Double): List<CombatEntity> = getNearbyEntities(location, x, y, z)
+  fun getNearbyEntities(x: Double, y: Double, z: Double): List<CombatEntity> =
+    getNearbyEntities(location, x, y, z)
 
   open fun getTarget(): CombatEntity? = null
 
@@ -305,7 +307,8 @@ abstract class CombatEntity {
       return null
     }
 
-    fun getNearbyEntities(location: Location, range: Double): List<CombatEntity> = getNearbyEntities(location, range, range, range)
+    fun getNearbyEntities(location: Location, range: Double): List<CombatEntity> =
+      getNearbyEntities(location, range, range, range)
 
     fun getNearbyEntities(
       location: Location,

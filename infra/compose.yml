@@ -1,0 +1,29 @@
+services:
+  database:
+    image: postgres:18.1
+    container_name: dungeon-database
+    environment:
+      POSTGRES_USER: dungeon
+      POSTGRES_PASSWORD: dungeon
+      POSTGRES_DB: dungeon
+      TZ: Asia/Tokyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../data/postgres:/var/lib/postgresql
+    restart: always
+  minecraft:
+    build: .
+    container_name: dungeon-minecraft
+    ports:
+      - "25565:25565"
+    volumes:
+      - ./data:/data
+      - ./plugins:/data/plugins
+    environment:
+      DB_URL: jdbc:postgresql://database:5432/dungeon
+      DB_USER: dungeon
+      DB_PASSWORD: dungeon
+      INITIAL_OPS: chikinasub
+      GAME_RULES: keepInventory:true,doDaylightCycle:false,doMobSpawning:false,doWeatherCycle:false
+    restart: always

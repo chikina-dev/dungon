@@ -1,11 +1,19 @@
 package net.chikina.minecraft.dungeon.map.floating.surface
 
+import net.chikina.minecraft.dungeon.foraging.TreeManager
+import net.chikina.minecraft.dungeon.foraging.TreeStructure
+import net.chikina.minecraft.dungeon.foraging.TreeType
 import net.chikina.minecraft.dungeon.map.floating.config.FloatingIslandConfig
+import net.chikina.minecraft.dungeon.math.noise.NoiseInterpolator
+import net.chikina.minecraft.dungeon.math.noise.Perlin
+import net.chikina.minecraft.dungeon.util.AsyncBlockBuffer
+import net.chikina.minecraft.dungeon.util.CoordinatePacker
 import net.chikina.minecraft.dungeon.util.Ellipsoid
 import net.chikina.minecraft.dungeon.util.Region3D
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.util.Vector
+import java.util.Random
 import java.util.UUID
 
 class IslandSurfaceGenerator(
@@ -13,12 +21,9 @@ class IslandSurfaceGenerator(
   private val worldUID: UUID,
 ) {
   // Noises
-  private val baseNoise = net.chikina.minecraft.dungeon.math.noise
-    .Perlin(config.seed)
-  private val detailNoise = net.chikina.minecraft.dungeon.math.noise
-    .Perlin(config.seed + 1)
-  private val stalactiteNoise = net.chikina.minecraft.dungeon.math.noise
-    .Perlin(config.seed + 2)
+  private val baseNoise = Perlin(config.seed)
+  private val detailNoise = Perlin(config.seed + 1)
+  private val stalactiteNoise = Perlin(config.seed + 2)
 
   companion object {
     private const val WARP_SCALE = 0.02
@@ -62,7 +67,7 @@ class IslandSurfaceGenerator(
   private val RADIUS_Z: Double
     get() = ellipsoid.radiusZ
 
-  fun generate(buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer) {
+  fun generate(buffer: AsyncBlockBuffer) {
     generateBaseShape(buffer)
     generateSurfaceTexturing(buffer)
 
@@ -74,7 +79,7 @@ class IslandSurfaceGenerator(
     generateVegetation(buffer)
   }
 
-  private fun generateBaseShape(buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer) {
+  private fun generateBaseShape(buffer: AsyncBlockBuffer) {
     val islandHeight = config.bounds.height.toDouble()
     val minY = config.bounds.minY.toDouble()
 
@@ -100,7 +105,7 @@ class IslandSurfaceGenerator(
     // 2. Create Interpolators for Warp Noise (3D)
     // cell size 4 is a good balance for warp (low frequency)
     val warpXInterp =
-      net.chikina.minecraft.dungeon.math.noise.NoiseInterpolator(
+      NoiseInterpolator(
         baseNoise,
         region,
         4,
@@ -110,7 +115,7 @@ class IslandSurfaceGenerator(
         WARP_AMP,
       )
     val warpZInterp =
-      net.chikina.minecraft.dungeon.math.noise.NoiseInterpolator(
+      NoiseInterpolator(
         baseNoise,
         region,
         4,
@@ -130,7 +135,11 @@ class IslandSurfaceGenerator(
       // Safety check for bounds (though forEach should match region)
       if (localX in 0 until region.width && localZ in 0 until region.depth) {
         val surfY = surfaceHeightMap[localX * region.depth + localZ]
-        if (y > surfY) return@forEach // Cut off above surface
+        if (y > surfY) {
+          // Overwrite optimization: Ensure AIR is set
+          buffer.setBlock(x, y, z, Material.AIR)
+          return@forEach
+        }
       }
 
       val density =
@@ -157,16 +166,17 @@ class IslandSurfaceGenerator(
           }
         }
 
-        // Direct write, no need to check AIR for initial shape generation in void
+        // Direct write
         buffer.setBlock(x, y, z, material)
+      } else {
+        // Density <= 0: Set AIR (Overwrite)
+        buffer.setBlock(x, y, z, Material.AIR)
       }
     }
   }
 
   // Optimized version using interpolators and skipping surface check (done outside)
-  private fun generateSurfaceTexturing(
-    buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer,
-  ) {
+  private fun generateSurfaceTexturing(buffer: AsyncBlockBuffer) {
     val minX = region.minX
     val maxX = region.maxX
     val minZ = region.minZ
@@ -199,7 +209,7 @@ class IslandSurfaceGenerator(
     }
   }
 
-  private fun generateVegetation(buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer) {
+  private fun generateVegetation(buffer: AsyncBlockBuffer) {
     // Randomly plant trees
     val minX = region.minX
     val maxX = region.maxX
@@ -227,13 +237,13 @@ class IslandSurfaceGenerator(
   }
 
   private fun buildTree(
-    buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer,
+    buffer: AsyncBlockBuffer,
     x: Int,
     y: Int,
     z: Int,
   ) {
-    val type = net.chikina.minecraft.dungeon.foraging.TreeType.OAK // Default to Oak for now
-    val blueprint = net.chikina.minecraft.dungeon.foraging.TreeStructure
+    val type = TreeType.OAK // Default to Oak for now
+    val blueprint = TreeStructure
       .createBlueprint(type)
 
     val logBlocks = HashSet<Long>()
@@ -262,7 +272,7 @@ class IslandSurfaceGenerator(
             ) {
               buffer.setBlock(wx, wy, wz, material)
 
-              val packed = net.chikina.minecraft.dungeon.util.CoordinatePacker
+              val packed = CoordinatePacker
                 .pack(wx, wy, wz)
               if (material == type.log) {
                 logBlocks.add(packed)
@@ -278,7 +288,7 @@ class IslandSurfaceGenerator(
     // Register with TreeManager
     if (logBlocks.isNotEmpty()) {
       val tree =
-        net.chikina.minecraft.dungeon.foraging.TreeStructure(
+        TreeStructure(
           java.util.UUID.randomUUID(),
           type,
           logBlocks,
@@ -287,7 +297,7 @@ class IslandSurfaceGenerator(
       tree.worldId = worldUID
       // Center will be calculated lazily by TreeManager
 
-      net.chikina.minecraft.dungeon.foraging.TreeManager
+      TreeManager
         .registerTree(tree)
     }
   }
@@ -300,7 +310,7 @@ class IslandSurfaceGenerator(
     // BUT user wants speed.
     // HYBRID: We estimate the surface height using the density function search.
 
-    val rnd = java.util.Random(config.seed)
+    val rnd = Random(config.seed)
     var bestLoc: Location? = null
 
     for (i in 0..ENTRANCE_ATTEMPTS) {
@@ -313,7 +323,16 @@ class IslandSurfaceGenerator(
       var ry = config.bounds.maxY.toDouble()
       // Raycast down using density function
       while (ry > config.horizonY) {
-        if (getSolidCoreDensity(rx, ry, rz) > 0) {
+        // Simplified density check for entrance placement
+        // We just need to hit the "solid core" roughly
+        val dx = rx - CENTER_X
+        val dz = rz - CENTER_Z
+        val normX = dx / RADIUS_X
+        val normZ = dz / RADIUS_Z
+        val distSq = (normX * normX) + (normZ * normZ)
+
+        // If inside 80% radius, consider it solid enough for entrance
+        if (distSq < 0.64) {
           bestLoc = Location(null, rx, ry + 1, rz)
           return bestLoc
         }
@@ -330,8 +349,8 @@ class IslandSurfaceGenerator(
     x: Double,
     y: Double,
     z: Double,
-    warpXInterp: net.chikina.minecraft.dungeon.math.noise.NoiseInterpolator,
-    warpZInterp: net.chikina.minecraft.dungeon.math.noise.NoiseInterpolator,
+    warpXInterp: NoiseInterpolator,
+    warpZInterp: NoiseInterpolator,
   ): Double {
     // Integer coordinates for interpolation lookups
     val ix = x.toInt()
@@ -374,55 +393,8 @@ class IslandSurfaceGenerator(
     return 1.0
   }
 
-  // Legacy method kept for DetermineEntrance (which doesn't use the full loop optimization yet, or
-  // should be updated)
-  // Actually, DetermineEntrance only traces down. It can use the legacy expensive check since it's
-  // only a few rays.
-  private fun getSolidCoreDensity(x: Double, y: Double, z: Double): Double {
-    val warpX = baseNoise.noise(x * WARP_SCALE, y * WARP_SCALE, z * WARP_SCALE) * WARP_AMP
-    val warpZ =
-      baseNoise.noise(x * WARP_SCALE + 100, y * WARP_SCALE, z * WARP_SCALE + 100) * WARP_AMP
-
-    val dx = x - CENTER_X + warpX
-    val dz = z - CENTER_Z + warpZ
-
-    val normX = dx / RADIUS_X
-    val normZ = dz / RADIUS_Z
-
-    val ellipsoidalDistSq = (normX * normX) + (normZ * normZ)
-    val normalizedDist = Math.sqrt(ellipsoidalDistSq)
-
-    if (normalizedDist > 0.9) return -1.0
-
-    val radialDensity = 1.0 - Math.pow(normalizedDist, 3.0)
-    if (radialDensity <= 0) return -1.0
-
-    val surfaceNoise =
-      baseNoise.noise(x * config.noiseScale, 0.0, z * config.noiseScale) * 0.5 +
-        detailNoise.noise(x * config.noiseScale * 2, 0.0, z * config.noiseScale * 2) *
-        0.25
-    val surfaceLevel = config.horizonY + (surfaceNoise * SURFACE_NOISE_SCALE)
-
-    if (y > surfaceLevel) return -1.0
-
-    if (y < config.horizonY) {
-      var hemisphereDepth = 0.0
-      if (ellipsoidalDistSq < 1.0) {
-        hemisphereDepth = Math.sqrt(1.0 - ellipsoidalDistSq)
-      }
-
-      val availableHeight = config.horizonY - config.bounds.minY
-      val maxDepth = availableHeight * 0.85
-      val baseBottomY = config.horizonY - (hemisphereDepth * maxDepth)
-
-      if (y < baseBottomY) return -1.0
-    }
-
-    return 1.0
-  }
-
   private fun placeEntrance(
-    buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer,
+    buffer: AsyncBlockBuffer,
     entranceLoc: Location,
   ) {
     smoothTerrain(buffer, entranceLoc, 6)
@@ -430,7 +402,7 @@ class IslandSurfaceGenerator(
   }
 
   private fun smoothTerrain(
-    buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer,
+    buffer: AsyncBlockBuffer,
     center: Location,
     radius: Int,
   ) {
@@ -456,7 +428,7 @@ class IslandSurfaceGenerator(
   }
 
   private fun buildRuinedGateway(
-    buffer: net.chikina.minecraft.dungeon.util.AsyncBlockBuffer,
+    buffer: AsyncBlockBuffer,
     center: Location,
   ) {
     val r = 2

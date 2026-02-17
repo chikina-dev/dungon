@@ -18,13 +18,14 @@ data class EnemyEquipment(
       boots: GameItem? = null,
       mainHand: GameItem? = null,
       offHand: GameItem? = null,
-    ): EnemyEquipment = EnemyEquipment(
-      helmet = helmet,
-      chestplate = chestplate,
-      leggings = leggings,
-      boots = boots,
-      mainHand = mainHand,
-      offHand = offHand,
-    )
+    ): EnemyEquipment =
+      EnemyEquipment(
+        helmet = helmet,
+        chestplate = chestplate,
+        leggings = leggings,
+        boots = boots,
+        mainHand = mainHand,
+        offHand = offHand,
+      )
   }
 }

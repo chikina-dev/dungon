@@ -42,11 +42,12 @@ object AttributeSynergyManager {
     return incoming.amount <= 0
   }
 
-  private fun canInteract(e1: MagicElement, e2: MagicElement): Boolean = (e1 == MagicElement.FIRE && e2 == MagicElement.WATER) ||
-    (e1 == MagicElement.WATER && e2 == MagicElement.FIRE) ||
-    (e1 == MagicElement.WATER && e2 == MagicElement.THUNDER) ||
-    (e1 == MagicElement.THUNDER && e2 == MagicElement.WATER) ||
-    (e2 == MagicElement.WIND && e1 != MagicElement.WIND)
+  private fun canInteract(e1: MagicElement, e2: MagicElement): Boolean =
+    (e1 == MagicElement.FIRE && e2 == MagicElement.WATER) ||
+      (e1 == MagicElement.WATER && e2 == MagicElement.FIRE) ||
+      (e1 == MagicElement.WATER && e2 == MagicElement.THUNDER) ||
+      (e1 == MagicElement.THUNDER && e2 == MagicElement.WATER) ||
+      (e2 == MagicElement.WIND && e1 != MagicElement.WIND)
 
   private fun triggerSynergy(
     target: CombatEntity,

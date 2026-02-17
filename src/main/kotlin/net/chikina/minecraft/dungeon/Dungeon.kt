@@ -49,11 +49,14 @@ import net.chikina.minecraft.dungeon.portal.PortalConfig
 import net.chikina.minecraft.dungeon.portal.PortalListener
 import net.chikina.minecraft.dungeon.ui.UIListener
 import net.chikina.minecraft.dungeon.ui.shop.ShopSellListener
+import net.chikina.minecraft.dungeon.util.BlockOperationManager
 import net.chikina.minecraft.dungeon.util.ConfigAccessor
 import net.chikina.minecraft.dungeon.util.DungeonTask
+import net.chikina.minecraft.dungeon.util.GameRuleUtil
 import net.chikina.minecraft.dungeon.util.Log
 import net.chikina.minecraft.dungeon.util.Messenger
 import net.chikina.minecraft.dungeon.util.PluginKeys
+import net.chikina.minecraft.dungeon.util.Setting
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -95,6 +98,40 @@ class Dungeon : JavaPlugin() {
     registerCommands()
     SkillRegistry.init(this)
     registerSkills()
+
+    initializeAdmin()
+    initializeGameRules()
+  }
+
+  private fun initializeAdmin() {
+    for (username in Setting.initialOps) {
+      try {
+        val player = server.getOfflinePlayer(username)
+        player.isOp = true
+        Log.info("Granted operator status to ${player.name} (${player.uniqueId})")
+      } catch (e: Exception) {
+        Log.error("Failed to grant operator status to $username", e)
+      }
+    }
+  }
+
+  private fun initializeGameRules() {
+    server.scheduler.runTask(
+      this,
+      Runnable {
+        val rules = Setting.gameRules
+
+        if (rules.isEmpty()) return@Runnable
+
+        val world = server.getWorld("world")
+        if (world == null) {
+          Log.warn("World 'world' is NULL! Game rules cannot be applied.")
+          return@Runnable
+        }
+
+        GameRuleUtil.applyGameRules(world, rules)
+      },
+    )
   }
 
   private fun registerSkills() {
@@ -108,11 +145,7 @@ class Dungeon : JavaPlugin() {
   }
 
   private fun initializeDatabase(): Boolean {
-    val dbUrl = config.getString("database.url") ?: "jdbc:postgresql://localhost:5432/dungeon"
-    val dbUser = config.getString("database.username") ?: "dungeon"
-    val dbPassword = config.getString("database.password") ?: "dungeon"
-
-    database = PostgresDatabase(dbUrl, dbUser, dbPassword)
+    database = PostgresDatabase(Setting.dbUrl, Setting.dbUser, Setting.dbPassword)
 
     return try {
       database.connect()
@@ -144,8 +177,7 @@ class Dungeon : JavaPlugin() {
 
     DungeonTask.runTimer(0L, 1L) { GameLoop.run() }
     DungeonTask.runTimer(0L, 20L) { TreeManager.tick() }
-    net.chikina.minecraft.dungeon.util.BlockOperationManager
-      .start()
+    BlockOperationManager.start()
 
     if (server.pluginManager.getPlugin("ProtocolLib") != null) {
       dropManager = DropManager()

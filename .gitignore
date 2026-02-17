@@ -1,5 +1,7 @@
 # User-specific stuff
 .idea/
+.vscode/
+data/
 
 *.iml
 *.ipr
@@ -111,6 +113,3 @@ buildNumber.properties
 
 # Common working directory
 run/
-
-
-.vscode/
